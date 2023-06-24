@@ -24,3 +24,66 @@
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
+
+
+.alert-radio-label.sc-ion-alert-md {
+    font-size: 12px !important;
+    padding-left: 30px !important;
+}
+
+.select-wrapper {
+    display: block !important;
+    padding-top: 20px !important;
+}
+
+.greenAlert .alert-wrapper {
+    border: 3px solid #4CAF50 !important;
+    border-radius: 20px !important;
+    padding: 20px !important;
+  }
+
+.greenAlert .alert-title{
+    font-weight: bold !important;
+    color: #156518 !important;
+    text-align: center !important;
+    font-size: 25px !important;
+}
+
+.isRedAlertOpen .alert-wrapper {
+    border: 3px solid red !important;
+    border-radius: 20px !important;
+    padding: 20px !important;
+  }
+
+.isRedAlertOpen .alert-title{
+    font-weight: bold !important;
+    color: rgb(104, 0, 0) !important;
+    text-align: center !important;
+    font-size: 25px !important;
+}
+
+ion-alert.isRedAlertOpen {
+    --backdrop-opacity: 0.95;
+}   
+ion-alert.greenAlert {
+    --backdrop-opacity: 0.95;
+}  
+.urgent-notification .toast-wrapper {
+    background: white !important;
+}
+
+.urgent-notification .toast-message:before {
+    content: '\f267';
+    color: black;
+    display: inline-block;
+    font-family: "Ionicons";
+    font-style: normal;
+    font-weight: bolder;
+    font-variant: normal;
+    text-transform: none;
+    text-rendering: auto;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    padding-right: 10px;
+    font-size: 2rem;
+  }

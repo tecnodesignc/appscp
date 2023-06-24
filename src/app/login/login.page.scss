@@ -1,0 +1,33 @@
+#container {
+  text-align: center;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+
+  h1 {
+    font-weight: bold;
+  }
+
+  img {
+    height: 250px;
+    margin-bottom: 30px;
+    margin-top: 30px;
+  }
+
+  ion-button {
+    font-size: 20px;
+    height: 50px;
+  }
+
+  h5 {
+    width: 200px;
+    margin: auto;
+    margin-top: 20px;
+    font-weight: normal;
+    font-size: 12px;
+  }
+}
+

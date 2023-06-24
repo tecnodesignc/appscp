@@ -21,8 +21,22 @@
     "@angular/platform-browser": "^16.0.0",
     "@angular/platform-browser-dynamic": "^16.0.0",
     "@angular/router": "^16.0.0",
+    "@awesome-cordova-plugins/android-permissions": "^6.3.0",
+    "@awesome-cordova-plugins/barcode-scanner": "^6.3.0",
+    "@awesome-cordova-plugins/file": "^6.3.0",
+    "@awesome-cordova-plugins/native-audio": "^6.3.0",
+    "@awesome-cordova-plugins/network": "^6.3.0",
+    "@ionic-native/device": "^5.36.0",
+    "@ionic-native/unique-device-id": "^5.36.0",
     "@ionic/angular": "^7.0.0",
+    "@ionic/cordova-builders": "^9.0.0",
+    "@ionic/storage": "^4.0.0",
+    "@ionic/storage-angular": "^4.0.0",
+    "cordova-plugin-nativeaudio": "^3.0.9",
+    "i": "^0.3.7",
     "ionicons": "^7.0.0",
+    "moment": "^2.29.4",
+    "npm": "^9.7.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.13.0"
@@ -32,8 +46,8 @@
     "@angular-eslint/builder": "^16.0.0",
     "@angular-eslint/eslint-plugin": "^16.0.0",
     "@angular-eslint/eslint-plugin-template": "^16.0.0",
-    "@angular-eslint/template-parser": "^16.0.0",
     "@angular-eslint/schematics": "^16.0.0",
+    "@angular-eslint/template-parser": "^16.0.0",
     "@angular/cli": "^16.0.0",
     "@angular/compiler": "^16.0.0",
     "@angular/compiler-cli": "^16.0.0",
@@ -43,6 +57,16 @@
     "@types/node": "^12.11.1",
     "@typescript-eslint/eslint-plugin": "5.3.0",
     "@typescript-eslint/parser": "5.3.0",
+    "cordova-android": "^10.1.2",
+    "cordova-plugin-android-permissions": "^1.1.5",
+    "cordova-plugin-device": "2.0.2",
+    "cordova-plugin-file": "^7.0.0",
+    "cordova-plugin-ionic-keyboard": "^2.0.5",
+    "cordova-plugin-ionic-webview": "^5.0.0",
+    "cordova-plugin-network-information": "^3.0.0",
+    "cordova-plugin-splashscreen": "5.0.2",
+    "cordova-plugin-statusbar": "^2.4.2",
+    "cordova-plugin-unique-device-id2": "^2.0.0",
     "eslint": "^7.26.0",
     "eslint-plugin-import": "2.22.1",
     "eslint-plugin-jsdoc": "30.7.6",
@@ -55,8 +79,29 @@
     "karma-coverage-istanbul-reporter": "~3.0.2",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
+    "phonegap-plugin-barcodescanner": "^8.1.0",
     "ts-node": "^8.3.0",
     "typescript": "~5.0.2"
   },
-  "description": "An Ionic project"
+  "description": "An Ionic project",
+  "cordova": {
+    "plugins": {
+      "phonegap-plugin-barcodescanner": {},
+      "cordova-plugin-statusbar": {},
+      "cordova-plugin-device": {},
+      "cordova-plugin-splashscreen": {},
+      "cordova-plugin-ionic-webview": {},
+      "cordova-plugin-ionic-keyboard": {},
+      "cordova-plugin-nativeaudio": {},
+      "cordova-plugin-android-permissions": {},
+      "cordova-plugin-unique-device-id2": {},
+      "cordova-plugin-network-information": {},
+      "cordova-plugin-file": {
+        "ANDROIDX_WEBKIT_VERSION": "1.4.0"
+      }
+    },
+    "platforms": [
+      "android"
+    ]
+  }
 }

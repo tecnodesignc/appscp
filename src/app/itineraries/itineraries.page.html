@@ -1,0 +1,13 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title> <ion-icon name="arrow-back-outline" [routerLink]="['/list']"></ion-icon> Itinerarios</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-list [inset]="true">
+    <ion-item *ngFor="let item of itinerarios">
+      <ion-label>{{item.drop_off}}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
