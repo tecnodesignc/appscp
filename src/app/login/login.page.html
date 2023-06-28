@@ -1,10 +1,14 @@
 <ion-content [fullscreen]="true">
   <div id="container">
-    <h1>Login Qr</h1>
+    <div style="width: 100%;">
+      <img alt="" src="../../assets/logo.png" style="height: 60px; margin-bottom: 0px;"/>
+    </div>
+    
     <img alt="" src="../../assets/scanHand.png" />
     <div style="width: 100%;">
       <ion-button  shape="round" (click)="scan()"><ion-icon name="qr-code-outline"  ></ion-icon></ion-button>
     </div>
+    <h4 style="font-weight: bold;margin-bottom: 0px;">Registrese como conductor</h4>
     <h5>ID unico: {{UniqueDeviceID}}</h5>
     <h5 style="font-weight: bold; font-size: 11px;" *ngIf="lastSync != ''">{{lastSync}}</h5>
   </div>
