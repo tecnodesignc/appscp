@@ -87,12 +87,14 @@ export class LoginPage {
       this.globalServ._login({token: this.token}).subscribe(request => {
         this.globalServ?._closeLoading();
         if(request?.data?.id){
-          this.globalServ._syncPassengers(this.token);
-          this.storage.set('token', this.token).then(()=>{
-            this.storage.set('user', request?.data).then(()=>{
-              this.router.navigateByUrl('/list' );
+          this.storage.set("lastSync", moment(new Date()).valueOf()).then(()=>{
+            this.globalServ._syncPassengers(this.token);
+            this.storage.set('token', this.token).then(()=>{
+              this.storage.set('user', request?.data).then(()=>{
+                this.router.navigateByUrl('/list' );
+              });
             });
-          });
+          })
         }
       });
     }else{

@@ -194,13 +194,14 @@ export class GlobalService {
 
     this.storage.get("lastSync").then(async (lastSync)=>{
 
-      if(lastSync){
+      /*if(lastSync){
         let duration = moment.duration(moment(new Date()).diff(moment(lastSync)));
+        console.log(duration);
         if((duration.hours() <= 2 && duration.days() == 0)){ 
           return;
         }
-      }
-      this.storage.set("lastSync", moment(new Date()).valueOf())
+      }*/
+      //this.storage.set("lastSync", moment(new Date()).valueOf())
 
       this.toast = await this.toastCtrl.create({
         message: 'Sincronizando',
