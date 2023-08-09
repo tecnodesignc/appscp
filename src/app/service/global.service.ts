@@ -40,7 +40,7 @@ export class GlobalService {
   }
 
   _routes(token:any): Observable<any> {
-    let url = this.baseApi + "transport/v1/routes?include=itineraries";
+    let url = this.baseApi + "transport/v1/routes";
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
@@ -117,13 +117,14 @@ export class GlobalService {
     );
   }
 
-  _saveQs = (f:string, d:object, t:string) => {
+  _saveQs = (f:string, d:object, t:string, u = "") => {
     this.storage.get("qs").then((qs)=>{
       let _qs = qs ?? [];
       _qs.push({
         f: f,
         d: d,
-        t: t
+        t: t,
+        u: u
       })
       this.storage.set("qs", _qs);
     });
@@ -252,31 +253,31 @@ export class GlobalService {
             this._createRoute(_qs.d, _qs.t).subscribe(request => {
               if(request?.data?.id){
                 this.last_createRoute_id = request?.data?.id;
-                qs.shift();
-                this.storage.set("qs", qs).then(()=>{
-                  this._syncProcess();
-                })
               }
+              qs.shift();
+              this.storage.set("qs", qs).then(()=>{
+                this._syncProcess();
+              })
             });
             break;
           case "_validatePassenger":
-            this._validatePassenger({..._qs.d, route_itinerary_id : _qs?.route_itinerary_id ?? this.last_createRoute_id}, _qs.t).subscribe(request => {
-              if(request?.data){
+            this._validatePassenger({..._qs.d, route_itinerary_id : _qs?.d?.route_itinerary_id && _qs?.d?.route_itinerary_id != "" ? _qs?.d?.route_itinerary_id : this.last_createRoute_id}, _qs.t).subscribe(request => {
+              //if(request?.data || request?.errors){
                 qs.shift();
                 this.storage.set("qs", qs).then(()=>{
                   this._syncProcess();
                 })
-              }
+              //}
             });
           break;
           case "_finishRoute":
-            this._finishRoute(_qs.d, _qs.t, _qs?.route_id ?? this.last_createRoute_id).subscribe(request => {
-              if(request?.data){
+            this._finishRoute(_qs.d, _qs.t, _qs.u && _qs.u != "" ? _qs.u : this.last_createRoute_id).subscribe(request => {
+              //if(request?.data || request?.errors){
                 qs.shift();
                 this.storage.set("qs", qs).then(()=>{
                   this._syncProcess();
                 })
-              }
+              //}
             });
           break;
         

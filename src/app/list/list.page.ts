@@ -57,8 +57,7 @@ export class ListPage implements OnInit {
     });
     this.uniqueDeviceID.get()
     .then((uuid: any) => {
-      console.log(uuid);
-      this.uuid = uuid.replaceAll("-", "").substring(0, 10);
+      this.uuid = "d5651863a5"//uuid.replaceAll("-", "").substring(0, 10);
     })
     .catch((error: any) => {
       console.log(error);
@@ -193,11 +192,13 @@ export class ListPage implements OnInit {
   }
 
   validatePassenger(passenger_id:any) {
-    let validateData = {
-      passenger: passenger_id,
-      route_itinerary_id: this.routeActive?.id ?? this.globalServ.last_createRoute_id
-    }
     if(this.isConnected){
+
+      let validateData = {
+        passenger: passenger_id,
+        route_itinerary_id: this.routeActive?.id ?? this.globalServ.last_createRoute_id
+      }
+
       //validate server
       this.globalServ?._openLoading("Espere...");
       this.globalServ._validatePassenger(validateData, this.token).subscribe(request => {
@@ -216,6 +217,12 @@ export class ListPage implements OnInit {
         }, 2000)
       });
     }else{
+
+      let validateData = {
+        passenger: passenger_id,
+        route_itinerary_id: this.routeActive?.id
+      }
+
       //validate local
       this.globalServ._showToast("Data local");
       this.globalServ._saveQs("_validatePassenger", validateData, this.token);
@@ -261,7 +268,7 @@ export class ListPage implements OnInit {
 
   finish() {
     let finishData = {
-      route_id: this.routeActive?.route_id,
+      //route_id: this.ruta,
       imei: this.uuid,
       start_date: this.routeActive?.created_at,
       end_date: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -278,7 +285,7 @@ export class ListPage implements OnInit {
     }else{
       //finish route local
       this.globalServ._showToast("Data local");
-      this.globalServ._saveQs("_finishRoute", finishData, this.token);
+      this.globalServ._saveQs("_finishRoute", finishData, this.token, this.routeActive?.id);
       this.showReport();
     }
   }
@@ -289,7 +296,7 @@ export class ListPage implements OnInit {
     if(this.isConnected){
       this.globalServ?._openLoading("Espere...");
       //show report server
-      this.globalServ._report(this.routeActive?.id, this.token).subscribe(async request => {
+      this.globalServ._report(this.routeActive?.id ?? this.globalServ.last_createRoute_id, this.token).subscribe(async request => {
         this.globalServ?._closeLoading();
         this.storage.remove("routeActive");
         this.routeActive = {

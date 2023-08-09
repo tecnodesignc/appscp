@@ -1,0 +1,29 @@
+BORRAR CARPETAS node_modules, platforms, plugins
+BORRAR package-lock.json
+
+
+npm install --legacy-peer-deps
+npm install @awesome-cordova-plugins/core --save --legacy-peer-deps
+npm install @ionic-native/core --save --legacy-peer-deps
+
+
+RUN -> ionic serve para verificar que todo bien con las dependencias
+
+ionic cordova platform add android@11
+ionic cordova build android
+
+ABRIR android studio
+
+-- SI TE DA ERROR  "Unable to determine Android SDK", copia el archivo local.properties de otro proyecto o solo crealo en la carpeta platform
+
+-- SI TE DA ERROR  "Could not find method compile() for arguments [{name=barcodescanner-release-2.1.5, ext=aar}]"
+debes hacer lo siguiente
+
+en android studio ir a FILE -> PROJECT STRUCTURE -> DEPENDENCIES 
+veras la dependencia barcode con un error o subrayado en amarillo ... la seleccionas y abajo pickeas "update compile to implementation"
+
+Debes tambien usar java 11  eso lo cambias en  FILE -> SETTINGS -> BUILD, EXECUTION ETC -> BUILD TOOLS -> GRADLE
+ en GRADLE JDK yo seleccione EMBEDDED JDK 11 que es el provee android studio ... 
+
+LISTO .. 
+
