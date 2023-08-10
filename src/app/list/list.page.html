@@ -12,7 +12,7 @@
         <h3 style="margin-top: 40px;">Seleccione una ruta</h3>
         <ion-item>
           <ion-select [(ngModel)]="ruta" name="ruta" style="max-width:100%; color:#77787B;" placeholder="Seleccione">
-            <ion-select-option *ngFor="let item of rutas" value="{{item.id}}">{{item.start_place}} - {{item.arrival_place}}</ion-select-option>
+            <ion-select-option *ngFor="let item of rutas" value="{{item.id}}">{{item.name}}</ion-select-option>
           </ion-select>
         </ion-item>
 
@@ -21,7 +21,7 @@
         </div>
     </div>
     <div style="width: 100%;" *ngIf="routeActive.token != null">
-      <h2> {{routeActive.start_place}} - {{routeActive.arrival_place}}</h2>
+      <h2> {{routeActive.name}} </h2>
       <div style="width: 100%; margin-top: 60px;">
         <ion-button color="success" shape="round" (click)="finish()" style="margin-bottom: 20px;">Finalizar ruta</ion-button>
         <ion-button  color="warning" shape="round" (click)="escanear()">Continuar ruta </ion-button>

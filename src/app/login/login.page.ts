@@ -71,7 +71,7 @@ export class LoginPage {
     this.uniqueDeviceID.get()
       .then((uuid: any) => {
         console.log(uuid);
-        this.UniqueDeviceID = "d5651863a5"//uuid.replaceAll("-", "").substring(0, 10);
+        this.UniqueDeviceID = uuid.replaceAll("-", "").substring(0, 10);
       })
       .catch((error: any) => {
         console.log(error);

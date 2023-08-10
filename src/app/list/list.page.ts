@@ -57,7 +57,7 @@ export class ListPage implements OnInit {
     });
     this.uniqueDeviceID.get()
     .then((uuid: any) => {
-      this.uuid = "d5651863a5"//uuid.replaceAll("-", "").substring(0, 10);
+      this.uuid = uuid.replaceAll("-", "").substring(0, 10);
     })
     .catch((error: any) => {
       console.log(error);
@@ -268,9 +268,7 @@ export class ListPage implements OnInit {
 
   finish() {
     let finishData = {
-      //route_id: this.ruta,
       imei: this.uuid,
-      start_date: this.routeActive?.created_at,
       end_date: moment().format('YYYY-MM-DD HH:mm:ss')
     }
     if(this.isConnected){
