@@ -15,10 +15,15 @@ import * as moment from 'moment';
 })
 export class LoginPage {
   loadingGlobal: any;
-  UniqueDeviceID = "";
-  token = ""
+  UniqueDeviceID = ""//"d5651863a5";
+  //token = "9e1c6040-c83b-4edf-bbda-0e75fc845121"
+  //token = "dfa0945c-15c4-45f0-84eb-20c059053ba0"
+  token = "";
   isConnected = false;
   lastSync = "";
+  isModalOpen = false;
+  companies!: any;
+
   constructor(
     private storage: Storage,
     private router: Router,
@@ -31,15 +36,12 @@ export class LoginPage {
     this.storage.get('token').then((token)=>{
       if(token) {
         this.token = token;
-        this.doLogin();
+        this.doLogin(true);
       }
     });
     this.platform.ready().then(() => {
       this.getUniqueDeviceID();
     });
-
-
-
   }
 
   ionViewDidEnter() {
@@ -67,7 +69,6 @@ export class LoginPage {
 
 
   getUniqueDeviceID() {
-
     this.uniqueDeviceID.get()
       .then((uuid: any) => {
         console.log(uuid);
@@ -79,37 +80,56 @@ export class LoginPage {
       });
   }
 
-  async doLogin(){
+  setCompany = async(company:any) => {
+    this.isModalOpen = false
+    await this.storage.set('company_id', company?.id);
+    this.globalServ._syncPassengers(this.token);
+    this.router.navigateByUrl('/list' );
+  }
+
+  async doLogin(autologin = false){
+    this.isModalOpen = false;
+    this.companies = [];
 
     if(this.isConnected){
       //login server
       this.globalServ._openLoading("Espere...")
-      this.globalServ._login({token: this.token}).subscribe(request => {
-        this.globalServ?._closeLoading();
+      this.globalServ._login({token: this.token}).subscribe(async request => {
+        
         if(request?.data?.id){
-          this.storage.set("lastSync", moment(new Date()).valueOf()).then(()=>{
+          await this.storage.set('token', this.token);
+          await this.storage.set('user', request?.data);
+          this.globalServ?._closeLoading();
+
+          if(autologin){
+            await this.storage.set("lastSync", moment(new Date()).valueOf());
             this.globalServ._syncPassengers(this.token);
-            this.storage.set('token', this.token).then(()=>{
-              this.storage.set('user', request?.data).then(()=>{
-                this.router.navigateByUrl('/list' );
-              });
-            });
-          })
+            this.router.navigateByUrl('/list' );
+            return;
+          }
+
+          if(request?.data?.companies.length == 1){
+            await this.storage.set("lastSync", moment(new Date()).valueOf());
+            await this.storage.set('company_id', request?.data?.companies[0]?.id);
+            this.globalServ._syncPassengers(this.token);
+            this.router.navigateByUrl('/list' );
+
+          }else{
+            this.companies =  request?.data?.companies
+            this.isModalOpen = true
+          }
         }
       });
     }else{
       //login local
-      this.globalServ._showToast("Data local");
-      this.storage.get("data_offline_drivers").then((data_offline_drivers)=>{
-        let user = data_offline_drivers.find((f:any)=> f?.user?.api_key == this.token)
+      //this.globalServ._showToast("Data local");
+      let data_offline_drivers = await this.storage.get("data_offline_drivers")
+      let user = data_offline_drivers.find((f:any)=> f?.user?.api_key == this.token)
         if(user){
-          this.storage.set('token', this.token).then(()=>{
-            this.storage.set('user', user?.user).then(()=>{
-              this.router.navigateByUrl('/list' );
-            });
-          });
+          await this.storage.set('token', this.token)
+          await this.storage.set('user', user?.user)
+          this.router.navigateByUrl('/list' );
         }
-      })
     }
 
   }

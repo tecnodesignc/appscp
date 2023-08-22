@@ -12,4 +12,24 @@
     <h5>ID unico: {{UniqueDeviceID}}</h5>
     <h5 style="font-weight: bold; font-size: 11px;" *ngIf="lastSync != ''">{{lastSync}}</h5>
   </div>
+
+
+  <ion-modal #modal [isOpen]="isModalOpen">
+    <ng-template>
+      <ion-content>
+        <ion-toolbar>
+          <ion-title>Seleccione</ion-title>
+          <ion-buttons slot="end">
+            <ion-button color="light" (click)="modal.dismiss()">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+        <ion-list>
+          <ion-item *ngFor="let item of companies">
+            <ion-label (click) = "setCompany(item)">{{item?.name}}</ion-label> 
+          </ion-item>
+        </ion-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
 </ion-content>

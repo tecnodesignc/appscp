@@ -28,12 +28,14 @@ export class ListPage implements OnInit {
     start_place: "",
     arrival_place: "",
     created_at: "",
-    token: null
+    token: null,
+    name: ""
   };
   isGreenAlertOpen=false;
   isRedAlertOpen=false;
   uuid = "";
   isConnected = false;
+  company_id = ""
   constructor(
     private storage: Storage,
     private globalServ: GlobalService,
@@ -73,31 +75,28 @@ export class ListPage implements OnInit {
 
   ionViewCanLeave() {return false;}
 
-  ionViewDidEnter() {
-    this.storage.get('user').then((user)=>{
-      if(user) this.user = user
-    });
-    
-    this.storage.get('token').then((token)=>{
-      if(token) this.token = token
-      this.storage.get('routeActive').then((routeActive)=>{
-        if(routeActive && routeActive?.token == token) this.routeActive = routeActive
-      });
-      this.initiate();
-    });
+  ionViewDidEnter = async() => {
+    this.user = await this.storage.get("user");
+    this.token = await this.storage.get("token");
+    this.company_id = await this.storage.get("company_id");
+    let routeActive = await this.storage.get("routeActive");
+    if(routeActive?.token == this.token){
+      this.routeActive = routeActive
+    }
+    this.initiate()
   }
 
   initiate() {
     if(this.isConnected){
       this.globalServ?._openLoading("Espere...");
-      this.globalServ._routes(this.token).subscribe(request => {
+      this.globalServ._routes(this.token, this.company_id).subscribe(request => {
         this.globalServ?._closeLoading();
         if(request?.data){
           this.rutas = request?.data;
         }
       });
     }else{
-      this.globalServ._showToast("Data local");
+      //this.globalServ._showToast("Data local");
       this.storage.get("data_offline_routes").then((data_offline_routes)=>{
         if(data_offline_routes) this.rutas = data_offline_routes;
       })
@@ -156,7 +155,7 @@ export class ListPage implements OnInit {
         if(this.isConnected){
           //begin route server
           this.globalServ?._openLoading("Espere...");
-          this.globalServ._createRoute(createData, this.token).subscribe(request => {
+          this.globalServ._createRoute(createData, this.token).subscribe(async request => {
             this.globalServ._closeLoading();
             if(request?.data?.id){
               this.escanear();
@@ -167,14 +166,12 @@ export class ListPage implements OnInit {
                 id: request?.data?.id,
                 token: this.token
               }
-              this.storage.set('routeActive', newRoute).then(()=>{
-                this.routeActive = newRoute;
-              });
+              await this.storage.set('routeActive', newRoute)
+              this.routeActive = newRoute;
             }
           });
         }else{
           //begin route local
-          this.globalServ._showToast("Data local");
           this.globalServ._saveQs("_createRoute", createData, this.token);
           this.escanear();
           let routeActive = this.rutas.filter((f:any)=> f.id == this.ruta);
@@ -183,9 +180,8 @@ export class ListPage implements OnInit {
             id: null,
             token: this.token
           }
-          this.storage.set('routeActive', newRoute).then(()=>{
-            this.routeActive = newRoute;
-          });
+          await this.storage.set('routeActive', newRoute)
+          this.routeActive = newRoute;
         }
       }
     });
@@ -288,7 +284,6 @@ export class ListPage implements OnInit {
     }
   }
 
-
   showReport = async () => {
     
     if(this.isConnected){
@@ -303,7 +298,8 @@ export class ListPage implements OnInit {
           start_place: "",
           arrival_place: "",
           created_at: "",
-          token: null
+          token: null,
+          name: ""
         };
   
         let alert = await this.alertCtrl.create({
@@ -330,7 +326,8 @@ export class ListPage implements OnInit {
         start_place: "",
         arrival_place: "",
         created_at: "",
-        token: null
+        token: null,
+        name: ""
       };
       let alert = await this.alertCtrl.create({
         subHeader: 'Ruta finalizada',
@@ -348,12 +345,11 @@ export class ListPage implements OnInit {
     }
   }
 
-  onLogout() {
-    this.storage.remove('token').then(()=>{
-      this.storage.remove('user').then(()=>{
-        this.router.navigateByUrl('/login' );
-      });
-    });
+  onLogout = async() => {
+    await this.storage.remove('token')
+    await this.storage.remove('user')
+    await this.storage.remove('company_id')
+    this.router.navigateByUrl('/login' );
   }
 
   goItineraries() {

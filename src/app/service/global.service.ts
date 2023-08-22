@@ -39,8 +39,8 @@ export class GlobalService {
     );
   }
 
-  _routes(token:any): Observable<any> {
-    let url = this.baseApi + "transport/v1/routes";
+  _routes(token:any, company_id = "0"): Observable<any> {
+    let url = this.baseApi + "transport/v1/routes?company_id=" + company_id;
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
@@ -131,8 +131,8 @@ export class GlobalService {
   } 
 
   async _syncRoutes (token:any, page = 1)  { 
-
-    let url = this.baseApi + "transport/v1/routes?include=itineraries";
+    let company_id= await this.storage.get("company_id");
+    let url = this.baseApi + "transport/v1/routes?include=itineraries&company_id=" + company_id;
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
@@ -167,8 +167,8 @@ export class GlobalService {
       'Authorization': 'Bearer ' + token
     });
 
-    this.http.get(url, {headers}).subscribe((data:any) => {
-      this.storage.get("data_offline_drivers").then((data_offline_drivers)=>{
+    this.http.get(url, {headers}).subscribe(async(data:any) => {
+      let data_offline_drivers = await this.storage.get("data_offline_drivers")
         let dataStorage = data_offline_drivers ?? [];
         if(data?.data){
           data?.data?.map((d:any)=>{
@@ -179,68 +179,44 @@ export class GlobalService {
               dataStorage.push(d);
             }
           })
-          this.storage.set("data_offline_drivers", dataStorage).then(()=>{
-            if(data?.data?.length == 100){
-              this._syncDrivers(token, page + 1);
-            }else{
-              this._syncRoutes(token);
-            }
-          })
+          await this.storage.set("data_offline_drivers", dataStorage)
+          if(data?.data?.length == 100){
+            this._syncDrivers(token, page + 1);
+          }else{
+            this._syncRoutes(token);
+          }
         }
-      });
     })
   }
 
-  _syncPassengers (token:any, page = 1)  { 
-
-    this.storage.get("lastSync").then(async (lastSync)=>{
-
-      /*if(lastSync){
-        let duration = moment.duration(moment(new Date()).diff(moment(lastSync)));
-        console.log(duration);
-        if((duration.hours() <= 2 && duration.days() == 0)){ 
-          return;
-        }
-      }*/
-      //this.storage.set("lastSync", moment(new Date()).valueOf())
-
-      this.toast = await this.toastCtrl.create({
-        message: 'Sincronizando',
-        position: 'top',
-        cssClass: 'urgent-notification'
-      });
-  
-      await this.toast.present();
-      
-      let url = this.baseApi + "transport/v1/passengers?include=user,&limit=100&page=" + page;
+  _syncPassengers =  async(token:any, page = 1) => { 
+      let company_id= await this.storage.get("company_id");
+      let url = this.baseApi + "transport/v1/passengers?include=user&limit=100&company_id="+company_id+"&page=" + page;
       let headers = new HttpHeaders({
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + token
       });
   
-      this.http.get(url, {headers}).subscribe((data:any) => {
-        this.storage.get("data_offline_passengers").then((data_offline_passengers)=>{
-          let dataStorage = data_offline_passengers ?? [];
-          if(data?.data){
-            data?.data?.map((d:any)=>{
-              let oneData = dataStorage.findIndex((f:any)=> f.id === d.id );
-              if(oneData != -1){
-                dataStorage[oneData] = d
-              }else{
-                dataStorage.push(d);
-              }
-            })
-            this.storage.set("data_offline_passengers", dataStorage).then(()=>{
-              if(data?.data?.length == 100){
-                this._syncPassengers(token, page + 1);
-              }else{
-                this._syncDrivers(token);
-              }
-            })
+      this.http.get(url, {headers}).subscribe(async(data:any) => {
+        let data_offline_passengers = await this.storage.get("data_offline_passengers");
+        let dataStorage = data_offline_passengers ?? [];
+        if(data?.data){
+          data?.data?.map((d:any)=>{
+            let oneData = dataStorage.findIndex((f:any)=> f.id === d.id );
+            if(oneData != -1){
+              dataStorage[oneData] = d
+            }else{
+              dataStorage.push(d);
+            }
+          })
+          await this.storage.set("data_offline_passengers", dataStorage)
+          if(data?.data?.length == 100){
+            this._syncPassengers(token, page + 1);
+          }else{
+            this._syncDrivers(token);
           }
-        });
+        }
       })
-    })
   }
 
   _syncProcess () {
