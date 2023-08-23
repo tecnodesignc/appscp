@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { Observable, of, throwError } from 'rxjs';
 import { tap, catchError  } from 'rxjs/operators';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { Storage } from '@ionic/storage';
-import * as moment from 'moment';
+import { AlertController } from '@ionic/angular';
 
 @Injectable({
   providedIn: 'root'
@@ -18,11 +18,16 @@ export class GlobalService {
   public toast:any;
   public last_createRoute_id = "";
 
+  public alertsOffline = [
+    "Usuario no encontrado"
+  ]
+
   constructor(
   	private http: HttpClient, 
     private toastCtrl: ToastController, 
     private loading: LoadingController,
-    private storage: Storage
+    private storage: Storage,
+    private alertController: AlertController
   ) {
 
   }
@@ -35,7 +40,7 @@ export class GlobalService {
     return this.http.post(url, postData, {headers})
     .pipe(
       tap((data)=> this.processResponse(data)),
-      catchError(this.handleError('error', [], false))
+      catchError(this.handleErrors)
     );
   }
 
@@ -61,11 +66,37 @@ export class GlobalService {
     return this.http.post(url, postData, {headers})
     .pipe(
       tap((data)=> this.processResponse(data)),
+      catchError(this.handleErrors)
+    );
+  }
+
+  _createRouteOffline(postData:any, token: any): Observable<any> {
+    let url = this.baseApi + "transport/v1/route-itineraries";
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    });
+    return this.http.post(url, postData, {headers})
+    .pipe(
+      tap((data)=> this.processResponse(data)),
       catchError(this.handleError('error', [], false))
     );
   }
 
   _validatePassenger(postData:any, token: any): Observable<any> {
+    let url = this.baseApi + "transport/v1/itineraries";
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    });
+    return this.http.post(url, postData, {headers})
+    .pipe(
+      tap((data)=> this.processResponse(data)),
+      catchError(this.handleErrors)
+    );
+  }
+
+  _validatePassengerOffline(postData:any, token: any): Observable<any> {
     let url = this.baseApi + "transport/v1/itineraries";
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
@@ -132,7 +163,7 @@ export class GlobalService {
 
   async _syncRoutes (token:any, page = 1)  { 
     let company_id= await this.storage.get("company_id");
-    let url = this.baseApi + "transport/v1/routes?include=itineraries&company_id=" + company_id;
+    let url = this.baseApi + "transport/v1/routes?company_id=" + company_id;
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
@@ -160,8 +191,8 @@ export class GlobalService {
   }
 
   async _syncDrivers (token:any, page = 1)  { 
-
-    let url = this.baseApi + "transport/v1/drivers?include=itineraries&limit=100&page=" + page;
+    let company_id = await this.storage.get("company_id");
+    let url = this.baseApi + "transport/v1/drivers?include=itineraries&limit=100&company_id="+company_id+"&page=" + page;
     let headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + token
@@ -190,7 +221,7 @@ export class GlobalService {
   }
 
   _syncPassengers =  async(token:any, page = 1) => { 
-      let company_id= await this.storage.get("company_id");
+      let company_id = await this.storage.get("company_id");
       let url = this.baseApi + "transport/v1/passengers?include=user&limit=100&company_id="+company_id+"&page=" + page;
       let headers = new HttpHeaders({
         'Content-Type': 'application/json',
@@ -226,7 +257,7 @@ export class GlobalService {
         let _func = _qs?.f;
         switch (_func) {
           case "_createRoute":
-            this._createRoute(_qs.d, _qs.t).subscribe(request => {
+            this._createRouteOffline(_qs.d, _qs.t).subscribe(request => {
               if(request?.data?.id){
                 this.last_createRoute_id = request?.data?.id;
               }
@@ -237,7 +268,7 @@ export class GlobalService {
             });
             break;
           case "_validatePassenger":
-            this._validatePassenger({..._qs.d, route_itinerary_id : _qs?.d?.route_itinerary_id && _qs?.d?.route_itinerary_id != "" ? _qs?.d?.route_itinerary_id : this.last_createRoute_id}, _qs.t).subscribe(request => {
+            this._validatePassengerOffline({..._qs.d, route_itinerary_id : _qs?.d?.route_itinerary_id && _qs?.d?.route_itinerary_id != "" ? _qs?.d?.route_itinerary_id : this.last_createRoute_id}, _qs.t).subscribe(request => {
               //if(request?.data || request?.errors){
                 qs.shift();
                 this.storage.set("qs", qs).then(()=>{
@@ -262,7 +293,7 @@ export class GlobalService {
             break;
         }
       }else{
-        this._showToast("Estas al dia!");
+        //this._showToast("Estas al dia!");
       }
     })
   }
@@ -291,6 +322,22 @@ export class GlobalService {
   }
 
   log(msg: string) {}
+
+  handleErrors = async (error: HttpErrorResponse) => {
+    this._closeLoading();
+
+    if(error && error?.error && error?.error?.errors){
+      const alert = await this.alertController.create({
+        header: error?.error?.errors,
+        cssClass: "isRedAlertOpen",
+      });
+      await alert.present();
+      setTimeout(()=>{
+        alert.dismiss()
+      },1500)
+    }
+    return "it`s is an error"
+  }
 
   handleError<T>(operation = 'operation', result?: T, showMsg = true) {
     this._closeLoading();

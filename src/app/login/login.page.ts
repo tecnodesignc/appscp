@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Storage } from '@ionic/storage';
 import { BarcodeScanner } from '@awesome-cordova-plugins/barcode-scanner/ngx';
 import { UniqueDeviceID } from '@ionic-native/unique-device-id/ngx';
-import { Platform } from '@ionic/angular';
+import { Platform , AlertController} from '@ionic/angular';
 import { NetworkService } from '../service/network.service';
 import * as moment from 'moment';
 
@@ -15,7 +15,7 @@ import * as moment from 'moment';
 })
 export class LoginPage {
   loadingGlobal: any;
-  UniqueDeviceID = ""//"d5651863a5";
+  UniqueDeviceID = "" // "d5651863a5";
   //token = "9e1c6040-c83b-4edf-bbda-0e75fc845121"
   //token = "dfa0945c-15c4-45f0-84eb-20c059053ba0"
   token = "";
@@ -23,6 +23,7 @@ export class LoginPage {
   lastSync = "";
   isModalOpen = false;
   companies!: any;
+  requestTemp : any
 
   constructor(
     private storage: Storage,
@@ -31,7 +32,8 @@ export class LoginPage {
     private barcodeScanner: BarcodeScanner,
     private uniqueDeviceID: UniqueDeviceID,
     public platform: Platform,
-    private networkService: NetworkService
+    private networkService: NetworkService,
+    private alertController: AlertController
   ) {
     this.storage.get('token').then((token)=>{
       if(token) {
@@ -44,18 +46,17 @@ export class LoginPage {
     });
   }
 
-  ionViewDidEnter() {
-    this.storage.get('lastSync').then((lastSync)=>{
-      if(lastSync) {
-        let duration = moment.duration(moment(new Date()).diff(moment(lastSync)));
-        if(duration.hours() > 0) {
-          this.lastSync = "Última actualización hace " + duration.hours() + "hrs";
-        };
-        if(duration.days() > 0) {
-          this.lastSync = "Última actualización hace " + duration.days() + "dias " + duration.hours() + "hrs";
-        };
-      }
-    });
+  ionViewDidEnter = async() => {
+    let lastSync = await this.storage.get('lastSync')
+    if(lastSync) {
+      let duration = moment.duration(moment(new Date()).diff(moment(lastSync)));
+      if(duration.hours() > 0) {
+        this.lastSync = "Última actualización hace " + duration.hours() + "hrs";
+      };
+      if(duration.days() > 0) {
+        this.lastSync = "Última actualización hace " + duration.days() + "dias " + duration.hours() + "hrs";
+      };
+    }
   }
 
   ngOnInit(){
@@ -71,7 +72,6 @@ export class LoginPage {
   getUniqueDeviceID() {
     this.uniqueDeviceID.get()
       .then((uuid: any) => {
-        console.log(uuid);
         this.UniqueDeviceID = uuid.replaceAll("-", "").substring(0, 10);
       })
       .catch((error: any) => {
@@ -80,7 +80,16 @@ export class LoginPage {
       });
   }
 
+  _ = async (request:any) => {
+    await this.storage.set('token', this.token);
+    await this.storage.set('user', request?.data);
+    await this.storage.set("data_offline_passengers", []);
+    await this.storage.set("data_offline_drivers", []);
+    await this.storage.set("data_offline_routes", []);
+  }
+
   setCompany = async(company:any) => {
+    this._(this.requestTemp);
     this.isModalOpen = false
     await this.storage.set('company_id', company?.id);
     this.globalServ._syncPassengers(this.token);
@@ -95,13 +104,12 @@ export class LoginPage {
       //login server
       this.globalServ._openLoading("Espere...")
       this.globalServ._login({token: this.token}).subscribe(async request => {
-        
         if(request?.data?.id){
-          await this.storage.set('token', this.token);
-          await this.storage.set('user', request?.data);
+          
           this.globalServ?._closeLoading();
 
           if(autologin){
+            this._(request);
             await this.storage.set("lastSync", moment(new Date()).valueOf());
             this.globalServ._syncPassengers(this.token);
             this.router.navigateByUrl('/list' );
@@ -109,27 +117,45 @@ export class LoginPage {
           }
 
           if(request?.data?.companies.length == 1){
+            this._(request);
             await this.storage.set("lastSync", moment(new Date()).valueOf());
             await this.storage.set('company_id', request?.data?.companies[0]?.id);
             this.globalServ._syncPassengers(this.token);
             this.router.navigateByUrl('/list' );
 
           }else{
+            this.requestTemp = request;
             this.companies =  request?.data?.companies
             this.isModalOpen = true
           }
         }
       });
+      
     }else{
       //login local
       //this.globalServ._showToast("Data local");
+
+      if(autologin){
+        this.router.navigateByUrl('/list' );
+        return;
+      }
+
       let data_offline_drivers = await this.storage.get("data_offline_drivers")
       let user = data_offline_drivers.find((f:any)=> f?.user?.api_key == this.token)
-        if(user){
-          await this.storage.set('token', this.token)
-          await this.storage.set('user', user?.user)
-          this.router.navigateByUrl('/list' );
-        }
+      if(user){
+        await this.storage.set('token', this.token)
+        await this.storage.set('user', user?.user)
+        this.router.navigateByUrl('/list' );
+      }else{
+        const alert = await this.alertController.create({
+          header: this.globalServ.alertsOffline[0],
+          cssClass: "isRedAlertOpen",
+        });
+        await alert.present();
+        setTimeout(()=>{
+          alert.dismiss()
+        },1500)
+      }
     }
 
   }

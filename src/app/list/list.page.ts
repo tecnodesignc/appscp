@@ -348,7 +348,6 @@ export class ListPage implements OnInit {
   onLogout = async() => {
     await this.storage.remove('token')
     await this.storage.remove('user')
-    await this.storage.remove('company_id')
     this.router.navigateByUrl('/login' );
   }
 
