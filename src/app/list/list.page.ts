@@ -59,7 +59,7 @@ export class ListPage implements OnInit {
     });
     this.uniqueDeviceID.get()
     .then((uuid: any) => {
-      this.uuid = uuid.replaceAll("-", "").substring(0, 10);
+      this.uuid = "d5651863a5"//uuid.replaceAll("-", "").substring(0, 10);
     })
     .catch((error: any) => {
       console.log(error);
@@ -123,68 +123,68 @@ export class ListPage implements OnInit {
   //
   //PROCCESS SCAN
   //
-  doBegin() {
+  doBegin = async() => {
     if(this.ruta == ""){return}
 
-    this.storage.get('lastSync').then(async (lastSync)=>{
-      if(lastSync) {
-        let duration = moment.duration(moment(new Date()).diff(moment(lastSync)));
-        if((duration.hours() + (duration.days() * 24)) >= 12) {
-          let alert = await this.alertCtrl.create({
-            subHeader: 'Necesitas actualizar',
-            message: 'Ha pasado más de 12 horas de la última actualización, por favor conectate a la red y logueate de nuevo.',
-            backdropDismiss: false,
-            buttons: [
-              {
-                text: 'OK',
-                handler: () => {
-                  this.onLogout();
-                }
+    let lastSync = await this.storage.get('lastSync')
+    if(lastSync) {
+      let duration = moment.duration(moment(new Date()).diff(moment(lastSync)));
+      if((duration.hours() + (duration.days() * 24)) >= 12) {
+        let alert = await this.alertCtrl.create({
+          subHeader: 'Necesitas actualizar',
+          message: 'Ha pasado más de 12 horas de la última actualización, por favor conectate a la red y logueate de nuevo.',
+          backdropDismiss: false,
+          buttons: [
+            {
+              text: 'OK',
+              handler: () => {
+                this.onLogout();
               }
-            ]
-          });
-          await alert.present();
-          return
-        }
-
-        let createData = {
-          route_id: this.ruta,
-          imei: this.uuid,
-          start_date: moment().format('YYYY-MM-DD HH:mm:ss')
-        }
-        if(this.isConnected){
-          //begin route server
-          this.globalServ?._openLoading("Espere...");
-          this.globalServ._createRoute(createData, this.token).subscribe(async request => {
-            this.globalServ._closeLoading();
-            if(request?.data?.id){
-              this.escanear();
-              let routeActive = this.rutas.filter((f:any)=> f.id == this.ruta);
-              let newRoute = {
-                ...routeActive[0],
-                ...request?.data,
-                id: request?.data?.id,
-                token: this.token
-              }
-              await this.storage.set('routeActive', newRoute)
-              this.routeActive = newRoute;
             }
-          });
-        }else{
-          //begin route local
-          this.globalServ._saveQs("_createRoute", createData, this.token);
-          this.escanear();
-          let routeActive = this.rutas.filter((f:any)=> f.id == this.ruta);
-          let newRoute = {
-            ...routeActive[0],
-            id: null,
-            token: this.token
-          }
-          await this.storage.set('routeActive', newRoute)
-          this.routeActive = newRoute;
-        }
+          ]
+        });
+        await alert.present();
+        return
       }
-    });
+
+      let createData = {
+        route_id: this.ruta,
+        imei: this.uuid,
+        start_date: moment().format('YYYY-MM-DD HH:mm:ss'),
+        company_id: this.company_id
+      }
+      if(this.isConnected){
+        //begin route server
+        this.globalServ?._openLoading("Espere...");
+        this.globalServ._createRoute(createData, this.token).subscribe(async request => {
+          this.globalServ._closeLoading();
+          if(request?.data?.id){
+            this.escanear();
+            let routeActive = this.rutas.filter((f:any)=> f.id == this.ruta);
+            let newRoute = {
+              ...routeActive[0],
+              ...request?.data,
+              id: request?.data?.id,
+              token: this.token
+            }
+            await this.storage.set('routeActive', newRoute)
+            this.routeActive = newRoute;
+          }
+        });
+      }else{
+        //begin route local
+        this.globalServ._saveQs("_createRoute", createData, this.token);
+        this.escanear();
+        let routeActive = this.rutas.filter((f:any)=> f.id == this.ruta);
+        let newRoute = {
+          ...routeActive[0],
+          id: null,
+          token: this.token
+        }
+        await this.storage.set('routeActive', newRoute)
+        this.routeActive = newRoute;
+      }
+    }
   }
 
   validatePassenger(passenger_id:any) {
@@ -202,9 +202,6 @@ export class ListPage implements OnInit {
         if(request?.data?.validate_passenger){
           this.onPlaySuccess();
           this.isGreenAlertOpen = true;
-        }else{
-          this.onPlayError();
-          this.isRedAlertOpen = true;
         }
         setTimeout(()=>{
           this.isGreenAlertOpen = false;

@@ -18,10 +18,6 @@ export class GlobalService {
   public toast:any;
   public last_createRoute_id = "";
 
-  public alertsOffline = [
-    "Usuario no encontrado"
-  ]
-
   constructor(
   	private http: HttpClient, 
     private toastCtrl: ToastController, 
@@ -221,6 +217,13 @@ export class GlobalService {
   }
 
   _syncPassengers =  async(token:any, page = 1) => { 
+
+    this.toastCtrl.create({
+      message: "Sincronizando",
+      duration: 1000,
+      position: 'top'
+    }).then(toast => toast.present());
+    
       let company_id = await this.storage.get("company_id");
       let url = this.baseApi + "transport/v1/passengers?include=user&limit=100&company_id="+company_id+"&page=" + page;
       let headers = new HttpHeaders({

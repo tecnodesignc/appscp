@@ -43,6 +43,7 @@ export class LoginPage {
     });
     this.platform.ready().then(() => {
       this.getUniqueDeviceID();
+      this.checkInternet()
     });
   }
 
@@ -60,12 +61,16 @@ export class LoginPage {
   }
 
   ngOnInit(){
-      this.networkService.getNetworkStatus().subscribe((connected: boolean) => {
-              this.isConnected = connected;
-              if (!this.isConnected) {
-                  console.log('Por favor enciende tu conexión a Internet');
-              }
-      });
+      this.checkInternet()
+  }
+
+  checkInternet () {
+    this.networkService.getNetworkStatus().subscribe((connected: boolean) => {
+          this.isConnected = connected;
+          if (!this.isConnected) {
+              console.log('Por favor enciende tu conexión a Internet');
+          }
+    });
   }
 
 
@@ -92,6 +97,7 @@ export class LoginPage {
     this._(this.requestTemp);
     this.isModalOpen = false
     await this.storage.set('company_id', company?.id);
+    await this.storage.set("lastSync", moment(new Date()).valueOf());
     this.globalServ._syncPassengers(this.token);
     this.router.navigateByUrl('/list' );
   }
@@ -148,7 +154,7 @@ export class LoginPage {
         this.router.navigateByUrl('/list' );
       }else{
         const alert = await this.alertController.create({
-          header: this.globalServ.alertsOffline[0],
+          header: "Usuario no encontrado",
           cssClass: "isRedAlertOpen",
         });
         await alert.present();
