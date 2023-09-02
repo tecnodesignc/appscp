@@ -36,6 +36,7 @@ export class ListPage implements OnInit {
   uuid = "";
   isConnected = false;
   company_id = ""
+  stringError = "Acceso no autorizado";
   constructor(
     private storage: Storage,
     private globalServ: GlobalService,
@@ -59,7 +60,7 @@ export class ListPage implements OnInit {
     });
     this.uniqueDeviceID.get()
     .then((uuid: any) => {
-      this.uuid = "d5651863a5"//uuid.replaceAll("-", "").substring(0, 10);
+      this.uuid = uuid.replaceAll("-", "").substring(0, 10);
     })
     .catch((error: any) => {
       console.log(error);
@@ -227,6 +228,19 @@ export class ListPage implements OnInit {
             this.onPlaySuccess();
             this.isGreenAlertOpen = true;
           }else{
+
+            this.stringError = "Acceso no autorizado";
+
+            if(!passenger){
+              this.stringError = "Usuario no encontrado";
+            }
+            if(passenger && passenger?.tickets_available <= 0){
+              this.stringError = "Usuario sin tickets disponibles";
+            }
+            if(passenger && passenger?.user?.is_activated == false){
+              this.stringError = "Usuario desactivado";
+            }
+
             this.onPlayError();
             this.isRedAlertOpen = true;
           }
